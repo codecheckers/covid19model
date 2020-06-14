@@ -74,9 +74,8 @@ in the repository at the time of checking.  However, this omission is
 minor.  (NB: the results were checked against the "Accelerated Article
 Preview" version of the paper from 8th June 2020, rather than the
 final version of the article.)  Overall, this was a straightforward
-reproduction, given the high level of care that the authors had
-provided with documenting the code, and supporting information
-describing the environment required to run the code.
+reproduction, given the diligent documentation and supporting
+information describing the environment required to run the code.
 
 
 \clearpage
@@ -85,7 +84,7 @@ describing the environment required to run the code.
 
 
 The github repository was cloned, and renamed to "covid19model-nature"
-(as there are two sets of paprs in the one repository).
+(as there are two sets of papers in the one repository).
 
 The programs were written in R and required a large number of
 dependencies, all of which were available.  I created the following
