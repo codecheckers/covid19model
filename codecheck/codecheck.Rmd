@@ -1,0 +1,231 @@
+---
+output:
+  pdf_document:
+    toc: false
+    includes:
+       in_header: codecheck-preamble.sty
+  html_document:
+    self_contained: false
+    toc: true
+    toc_float: false
+---
+
+```{r rsetup,eval=TRUE,include=FALSE}
+require(codecheck)
+require(knitr)
+require(rprojroot)
+require(yaml)
+require(xtable)
+require(tibble)
+require(readr)
+options(width=60)
+opts_chunk$set(cache=FALSE)
+
+root = find_root("codecheck.yml")
+```
+
+```{r codecheck_logo, echo=FALSE,results='asis'}
+latex_codecheck_logo()
+```
+
+```{r manifest, eval=TRUE, include=FALSE}
+metadata = codecheck_metadata(root)
+manifest = metadata$manifest
+
+dest_dir = file.path(root, "codecheck", "outputs")
+## Create the outputs directory if missing
+if ( !dir.exists(dest_dir) ) {
+  dir.create(dest_dir)
+}
+
+## get_outputs = function(manifest) {
+##   files = sapply(manifest, function(x) x$file)
+##   comments = sapply(manifest, function(x) x$comment)
+##   sizes = file.size(dest_files)
+##   url=sprintf('<a href="%s">%s</a>', dest_files, files)
+##   table = cbind(files, comments, sizes, url)
+##   table
+## }
+
+manifest_df = copy_manifest_files(root, manifest,
+                                  dest_dir, keep_full_path=FALSE)
+```
+
+---
+title: `r paste("CODECHECK certificate", metadata$certificate)`
+subtitle: `r codecheck:::as_latex_url(metadata$report)`
+---
+
+```{r summary_metadata, echo=FALSE, results='asis'}
+latex_summary_of_metadata(metadata)
+```
+
+```{r summary_manifest, echo=FALSE, results='asis'}
+latex_summary_of_manifest(manifest_df)
+```
+
+# Summary
+
+The R scripts provided by the authors were used to generate the main
+findings in the papers (tables and figures).  All the main findings in
+the paper could be reproduced.  Only one model figure (Extended data
+Figure 5) was not reproduced simply because the code was not available
+in the repository at the time of checking.  However, this omission is
+minor.  (NB: the results were checked against the "Accelerated Article
+Preview" version of the paper from 8th June 2020, rather than the
+final version of the article.)  Overall, this was a straightforward
+reproduction, given the high level of care that the authors had
+provided with documenting the code, and supporting information
+describing the environment required to run the code.
+
+
+\clearpage
+
+# CODECHECKER notes
+
+
+The github repository was cloned, and renamed to "covid19model-nature"
+(as there are two sets of paprs in the one repository).
+
+The programs were written in R and required a large number of
+dependencies, all of which were available.  I created the following
+`codecheck-installs.R` script based on the contents of the
+`environment.yml`:
+
+```{r, code = readLines("codecheck-installs.R"), eval=FALSE}
+```
+
+The code was first run using the Dockerfile, although this ran the
+base model, rather than the analysis for the Nature manuscript.  The
+simulations were thus run by running the simulation directly on a
+workstation:
+
+```{sh, eval=FALSE}
+Rscript base-nature.r --full
+```
+
+The run took about 6 hours rather than the anticipated 3 hours, due to
+one chain taking much longer to sample from.
+
+Figures required no further post-processing after the R scripts were
+run, so these match the layout in the manuscript.  The tables however
+required some simple formatting, as the outputs were provided in the
+form of CSV files.  (Extended data table 1 was made by merging several
+data files, each column coming from a different CSV.  The first column
+of extended data table 1 was missing.)
+
+Given that the analysis in this paper is stochastic, and the random
+number seed was not fixed, the results in the paper and this run
+should not match exactly.  There is very good agreement between the
+runs reported in the manuscript and those that were performed here.
+ 
+\setcounter{table}{0}
+\setcounter{figure}{0}
+\captionsetup[table]{labelformat=addC}
+\captionsetup[figure]{labelformat=addC}
+
+\clearpage
+
+```{r, echo=FALSE, fig.cap=manifest_df[1:5,"comment"]}
+# TODO turn into a loop 
+knitr::include_graphics(manifest_df[1, "dest"])
+cat('\n\n')
+knitr::include_graphics(manifest_df[2, "dest"])
+cat('\n\n')
+knitr::include_graphics(manifest_df[3, "dest"])
+cat('\n\n')
+knitr::include_graphics(manifest_df[4, "dest"])
+cat('\n\n')
+knitr::include_graphics(manifest_df[5, "dest"])
+```
+
+```{r,results='asis',echo=FALSE}
+df = read.csv(manifest_df[6, "dest"],nrows=11)
+Country = df$countries
+Percent_Infected = df$text
+tab1 = data.frame(Country, Percent_Infected)
+tab1 = tab1[order(tab1$Country),]
+print(xtable(tab1, caption=manifest_df[6, "comment"]),
+      comment=FALSE,
+      include.rownames=FALSE)
+```
+
+\clearpage
+
+
+```{r, echo=FALSE, fig.cap=manifest_df[7:13,"comment"]}
+# TODO turn into a loop 
+knitr::include_graphics(manifest_df[7, "dest"])
+cat('\n\n')
+knitr::include_graphics(manifest_df[8, "dest"])
+cat('\n\n')
+knitr::include_graphics(manifest_df[9, "dest"])
+cat('\n\n')
+knitr::include_graphics(manifest_df[10, "dest"])
+cat('\n\n')
+knitr::include_graphics(manifest_df[11, "dest"])
+cat('\n\n')
+knitr::include_graphics(manifest_df[12, "dest"])
+cat('\n\n')
+knitr::include_graphics(manifest_df[13, "dest"])
+```
+
+
+\clearpage
+
+```{r,results='asis',echo=FALSE}
+model_df = read.csv(manifest_df[14, "dest"],nrows=12)
+null_df = read.csv(manifest_df[15, "dest"],nrows=12)
+averted_df = read.csv(manifest_df[16, "dest"],nrows=12)
+
+Country = model_df$countries
+model = model_df$text
+null = null_df$text
+averted = averted_df$text
+etab1 = data.frame(Country, model, null, averted)
+etab1 = etab1[order(etab1$Country),]
+## swap the UK and Total columns.
+uk.row = which(etab1$Country=="United_Kingdom")
+total.row = which(etab1$Country=="Total")
+etab1[total.row,1] = "All"  ## renamed from Total
+temp_row = etab1[uk.row,]
+etab1[uk.row,] = etab1[total.row,]
+etab1[total.row,] = temp_row
+
+print(xtable(etab1, caption=manifest_df[14, "comment"]),
+      comment=FALSE,
+      include.rownames=FALSE)
+```
+
+
+\clearpage
+
+# Citing this document
+
+```{r, results='asis', echo=FALSE}
+citation(metadata)
+```
+
+# About CODECHECK
+
+This certificate confirms that the codechecker could independently
+reproduce the results of a computational analysis given the data and
+code from a third party.  A CODECHECK does not check whether the
+original computation analysis is correct.  However, as all materials
+required for the reproduction are freely available by following the
+links in this document, the reader can then study for themselves the
+code and data.
+
+# About this document
+
+This document was created using [R Markdown](https://rmarkdown.rstudio.com/) using the [`codecheck`](https://github.com/codecheckers/codecheck) R package.
+`make codecheck.pdf` will regenerate the report file.
+
+```{r}
+sessionInfo()
+```
+
+```{r, include=FALSE, eval=FALSE}
+# render this document in RStudio
+rmarkdown::render("codecheck.Rmd", output_format = "pdf_document") 
+```
