@@ -9,10 +9,8 @@ paper:
     - name: Seth Flaxman
     - name: Imperial College COVID-19 Response Team
     - name: Samir Bhatt
-      ORCID: http://orcid.org/0000-0002-0891-4611
-  reference: >
-    Nature, in press
-    http://dx.doi.org/10.1038/s41586-020-2405-7 (2020)
+      ORCID: 0000-0002-0891-4611
+  reference: http://doi.org/10.1038/s41586-020-2405-7
 
 manifest:
   - file: nature/figures/France-three-pannel-base-nature-708913.png
